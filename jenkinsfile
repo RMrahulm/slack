@@ -1,0 +1,47 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Pull code from your GitHub repo
+                git branch: 'main', url: 'https://github.com/RMrahulm/slack.git'
+            }
+        }
+
+        stage('Build') {
+            steps {
+                // Compile the project using Maven
+                sh 'mvn clean compile'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                // Run unit tests
+                sh 'mvn test'
+            }
+        }
+
+        stage('Package') {
+            steps {
+                // Package the application into a JAR file
+                sh 'mvn package'
+            }
+        }
+    }
+
+    post {
+        success {
+            // Send success notification to Slack
+            slackSend(channel: '#jenkinsnotifications',
+                      message: "✅ Build SUCCESS for ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+        }
+        failure {
+            // Send failure notification to Slack
+            slackSend(channel: '#jenkinsnotifications',
+                      message: "❌ Build FAILED for ${env.JOB_NAME} #${env.BUILD_NUMBER}")
+        }
+    }
+}
+
